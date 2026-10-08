@@ -1,0 +1,54 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  getFailedTestNames,
+  getPassRate,
+  haveUniqueResultIds,
+  summarizeResults,
+} from "../src/js/test-run-summary.js";
+
+const mixedResults = [
+  { id: "TC-1", name: "Valid login", status: "passed" },
+  { id: "TC-2", name: "Invalid password", status: "failed" },
+  { id: "TC-3", name: "Locked account", status: "skipped" },
+  { id: "TC-4", name: "Reset password", status: "passed" },
+];
+
+test("summarizes a mixed run", () => {
+  assert.deepEqual(summarizeResults(mixedResults), {
+    passed: 2,
+    failed: 1,
+    skipped: 1,
+    total: 4,
+  });
+});
+
+test("returns failed names in input order", () => {
+  assert.deepEqual(getFailedTestNames(mixedResults), ["Invalid password"]);
+});
+
+test("calculates pass rate and defines the empty-run result", () => {
+  assert.equal(getPassRate(mixedResults), 0.5);
+  assert.equal(getPassRate([]), null);
+});
+
+test("handles empty summaries and unique IDs", () => {
+  assert.deepEqual(summarizeResults([]), {
+    passed: 0,
+    failed: 0,
+    skipped: 0,
+    total: 0,
+  });
+  assert.equal(haveUniqueResultIds([]), true);
+  assert.equal(haveUniqueResultIds(mixedResults), true);
+});
+
+test("rejects unknown statuses and duplicate or empty IDs", () => {
+  assert.throws(
+    () =>
+      summarizeResults([{ id: "TC-X", name: "Unknown", status: "blocked" }]),
+    /status/i,
+  );
+  assert.equal(haveUniqueResultIds([{ id: "TC-1" }, { id: "TC-1" }]), false);
+  assert.equal(haveUniqueResultIds([{ id: "" }]), false);
+});
