@@ -1,0 +1,15 @@
+{
+  "name": "qe-automation-phase-1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hands-on JavaScript, TypeScript, and Git foundations for an experienced Quality Engineer.",
+  "type": "module",
+  "scripts": {
+    "test": "npm run build && node --test",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}
