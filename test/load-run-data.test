@@ -1,0 +1,31 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { loadRunData } from "../src/js/load-run-data.js";
+
+test("loads valid JSON from a temporary synthetic fixture", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "qe-phase1-"));
+  const filePath = join(directory, "run.json");
+  const expected = [{ id: "R-1", status: "passed" }];
+
+  try {
+    await writeFile(filePath, JSON.stringify(expected), "utf8");
+    assert.deepEqual(await loadRunData(filePath), expected);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("rejects malformed JSON instead of silently returning empty data", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "qe-phase1-"));
+  const filePath = join(directory, "invalid.json");
+
+  try {
+    await writeFile(filePath, "{not json", "utf8");
+    await assert.rejects(loadRunData(filePath));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
